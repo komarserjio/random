@@ -2246,7 +2246,8 @@
           'catloaf',
         ];
 
-        fetch("https://meme-api.com/gimme")
+        const subreddit = subreddits[Math.floor(Math.random() * subreddits.length)];
+        fetch(`https://meme-api.com/gimme/${subreddit}`)
           .then((response) => response.json())
           .then((data) => {
             const memeImage = document.getElementById("memeImage");
