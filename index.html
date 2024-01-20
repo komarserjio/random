@@ -8,8 +8,8 @@
       body {
         font-family: "Arial", sans-serif;
         text-align: center;
-        margin: 50px;
-        font-size: 20px;
+        margin: 60px;
+        font-size: 28px;
       }
       button {
         margin: 5px;
@@ -18,6 +18,10 @@
       input {
         margin: 5px;
         font-size: 20px;
+      }
+      .word {
+        color: green;
+        font-style: italic;
       }
       #memeImage {
         display: none;
@@ -32,15 +36,17 @@
 
     <div id="quiz-container">
       <p id="question"></p>
-      <input type="text" id="answerInput" placeholder="Type your answer" />
-      <button onclick="checkAnswer()">Send</button>
-      <button
-        id="nextButton"
-        onclick="moveToNextQuestion()"
-        style="display: none"
-      >
-        Næste spørgsmål
-      </button>
+      <form onsubmit="return false;">
+        <input type="text" id="answerInput" placeholder="Type your answer" />
+        <button id="sendButton" onclick="checkAnswer()" type="submit" style="display: none">Send</button>
+        <button
+          id="nextButton"
+          onclick="moveToNextQuestion()"
+          style="display: none"
+        >
+          Næste spørgsmål
+        </button>
+      </form>
       <p id="result"></p>
       <button id="memeButton" onclick="showMeme()" style="display: none">
         Vis Meme Nu!
@@ -2117,22 +2123,26 @@
         }
       ];
 
-      // Shuffle the questions array to randomize the order
-      const shuffledQuestions = questions.sort(() => Math.random() - 0.5);
-
       // Initialize quiz variables
-      let currentQuestionIndex = 0;
-      let currentQuestion = shuffledQuestions[currentQuestionIndex];
+      // get random element from array
+      let currentQuestionIndex;
+      let currentQuestion;
+      let failCounter = 0;
 
       // Function to update the quiz with the current question
       function updateQuiz() {
-        document.getElementById("question").innerText =
-          "Skriv i datid: " + currentQuestion.question;
+        failCounter = 0;
+        currentQuestionIndex = Math.floor(Math.random() * questions.length);
+        currentQuestion = questions[currentQuestionIndex];
+
+        document.getElementById("question").innerHTML =
+          `Skriv i datid: <span class='word'>${currentQuestion.question}</span>`;
         document.getElementById("answerInput").value = "";
         document.getElementById("result").innerText = "";
         document.getElementById("nextButton").style.display = "none";
         document.getElementById("memeButton").style.display = "none";
         document.getElementById("memeImage").style.display = "none";
+        document.getElementById("sendButton").style.display = "inline-block";
       }
 
       // Function to check the user's answer
@@ -2141,36 +2151,62 @@
           .getElementById("answerInput")
           .value.trim()
           .toLowerCase();
+
         const correctAnswer = currentQuestion.answer.toLowerCase();
 
         if (userAnswer === correctAnswer) {
-          document.getElementById("result").innerText = "Rigtigt! Du har fortjent at se en meme!";
+          let successEmojis = ["🤪", "😂", "😎", "😜", "😝"];
+          let successMessasges = [
+            "Sådan!",
+            "Du er den bedste!",
+            "Ja!",
+            "Jeps!",
+            "Korrekt!",
+            "Helt korrekt!",
+            "Du har ret!",
+            "Så dygtig du er!",
+          ];
+          document.getElementById("result").innerText = successMessasges[
+            Math.floor(Math.random() * successMessasges.length)
+          ] + " " + successEmojis[Math.floor(Math.random() * successEmojis.length)];
 
           // Enable the "Next Question" and "Show Meme" buttons after a correct answer
           document.getElementById("nextButton").style.display = "inline-block";
-          document.getElementById("memeButton").style.display = "inline-block";
           document.getElementById("answerInput").style.display = "inline-block";
+          document.getElementById("sendButton").style.display = "none";
+
+          if (failCounter < 3) {
+            document.getElementById("memeButton").style.display = "inline-block";
+          }
         } else {
-          document.getElementById("result").innerText = "Prøv igen!";
+          failCounter++;
+          if (failCounter > 3) {
+            document.getElementById("result").innerHTML = `Korrekt svar: <span class='word'>${correctAnswer}</span>`;
+          } else {
+            let failEmojis = ["🤪", "🤡", "🙄", "😫", "😜", "😝", "💩"];
+            let tryAgainMessasges = [
+              "Prøv igen!",
+              "Det var ikke helt rigtigt!",
+              "Kom igen!",
+              "Er du sikkert?",
+              "Nej!!! Fejl!!!",
+              "Oops...",
+            ];
+            document.getElementById("result").innerText = tryAgainMessasges[
+              Math.floor(Math.random() * tryAgainMessasges.length)
+            ] + " " + failEmojis[Math.floor(Math.random() * failEmojis.length)];
+          }
         }
       }
 
       // Function to move to the next question
       function moveToNextQuestion() {
-        // Move to the next question or finish the quiz
-        if (currentQuestionIndex < shuffledQuestions.length - 1) {
-          currentQuestionIndex++;
-          currentQuestion = shuffledQuestions[currentQuestionIndex];
-          updateQuiz();
-        } else {
-          document.getElementById("quiz-container").innerHTML =
-            "<p>Congratulations! You completed the quiz.</p>";
-        }
+        updateQuiz();
       }
 
       // Function to show a random meme image
       function showMeme() {
-        fetch("https://meme-api.com/gimme/animalmemes")
+        fetch("https://meme-api.com/gimme")
           .then((response) => response.json())
           .then((data) => {
             const memeImage = document.getElementById("memeImage");
