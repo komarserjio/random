@@ -13,11 +13,11 @@
       }
       button {
         margin: 5px;
-        font-size: 20px;
+        font-size: 30px;
       }
       input {
         margin: 5px;
-        font-size: 20px;
+        font-size: 30px;
       }
       .word {
         color: green;
@@ -37,20 +37,25 @@
     <div id="quiz-container">
       <p id="question"></p>
       <form onsubmit="return false;">
-        <input type="text" id="answerInput" placeholder="Type your answer" />
-        <button id="sendButton" onclick="checkAnswer()" type="submit" style="display: none">Send</button>
-        <button
-          id="nextButton"
-          onclick="moveToNextQuestion()"
-          style="display: none"
-        >
-          Næste spørgsmål
-        </button>
+        <div>
+          <input type="text" id="answerInput" placeholder="Type your answer" />
+        </div>
+        <div>
+          <button id="sendButton" onclick="checkAnswer()" type="submit" style="display: none">Send</button>
+        </div>
+        <div>
+          <button
+            id="nextButton"
+            onclick="moveToNextQuestion()"
+            style="display: none"
+          >
+            Næste spørgsmål
+          </button>
+        </div>
       </form>
       <p id="result"></p>
-      <button id="memeButton" onclick="showMeme()" style="display: none">
-        Vis Meme Nu!
-      </button>
+      <hr />
+      <p id="memePoints" style="display:none;"></p>
       <img id="memeImage" onclick="hideMeme()" />
     </div>
 
@@ -2128,6 +2133,7 @@
       let currentQuestionIndex;
       let currentQuestion;
       let failCounter = 0;
+      let memePoints = 0;
 
       // Function to update the quiz with the current question
       function updateQuiz() {
@@ -2140,9 +2146,10 @@
         document.getElementById("answerInput").value = "";
         document.getElementById("result").innerText = "";
         document.getElementById("nextButton").style.display = "none";
-        document.getElementById("memeButton").style.display = "none";
         document.getElementById("memeImage").style.display = "none";
-        document.getElementById("sendButton").style.display = "inline-block";
+        document.getElementById("sendButton").style.display = "inline";
+        document.getElementById("memePoints").style.display = 'block';
+        updatePoints();
       }
 
       // Function to check the user's answer
@@ -2176,13 +2183,19 @@
           document.getElementById("sendButton").style.display = "none";
 
           if (failCounter < 3) {
-            document.getElementById("memeButton").style.display = "inline-block";
+            memePoints++;
+          }
+          if (memePoints > 2) {
+            showMeme();
+            memePoints = 0;
           }
         } else {
           failCounter++;
           if (failCounter > 3) {
+            memePoints = 0;
             document.getElementById("result").innerHTML = `Korrekt svar: <span class='word'>${correctAnswer}</span>`;
           } else {
+            let memePoints = 0;
             let failEmojis = ["🤪", "🤡", "🙄", "😫", "😜", "😝", "💩"];
             let tryAgainMessasges = [
               "Prøv igen!",
@@ -2197,15 +2210,42 @@
             ] + " " + failEmojis[Math.floor(Math.random() * failEmojis.length)];
           }
         }
+
+        updatePoints();
       }
 
       // Function to move to the next question
       function moveToNextQuestion() {
         updateQuiz();
       }
+      
+      function updatePoints() {
+        let memeText = `Meme points: ${memePoints}`;
+        if (memePoints === 2) {
+          memeText = `En mere point og så meme kommer`;; 
+        }
+        document.getElementById("memePoints").innerHTML = memeText;
+      }
 
       // Function to show a random meme image
       function showMeme() {
+        const subreddits = [
+          'unexpected', 
+          'funny', 
+          'dankmemes',
+          'memes',
+          'wholesomememes',
+          'animalmemes',
+          'terriblefacebookmemes',
+          'memeeconomy',
+          'animemes',
+          'gymmemes',
+          'minecraftmemes',
+          'catmemes',
+          'catsinsinks',
+          'catloaf',
+        ];
+
         fetch("https://meme-api.com/gimme")
           .then((response) => response.json())
           .then((data) => {
@@ -2216,8 +2256,7 @@
           })
           .catch((error) => console.error("Error fetching meme:", error));
 
-        // Hide the "Show Meme" button after displaying the meme
-        document.getElementById("memeButton").style.display = "none";
+        document.getElementById("memePoints").style.display = "none";
       }
 
       // Function to hide the meme image after clicking on it
